@@ -196,26 +196,9 @@ namespace AlightenInk
             if (tool != Tool.Text) CommitText();
             FinishGesture(cancel: false);
             _tool = tool;
-            switch (tool)
-            {
-                case Tool.Pen:
-                case Tool.Highlighter:
-                    _ink.EditingMode = InkCanvasEditingMode.Ink;
-                    _ink.Cursor = Cursors.Cross;
-                    break;
-                case Tool.Text:
-                    _ink.EditingMode = InkCanvasEditingMode.None;
-                    _ink.Cursor = Cursors.IBeam;
-                    break;
-                case Tool.Eraser:
-                    _ink.EditingMode = InkCanvasEditingMode.None;
-                    _ink.Cursor = Cursors.None;
-                    break;
-                default:
-                    _ink.EditingMode = InkCanvasEditingMode.None;
-                    _ink.Cursor = Cursors.Cross;
-                    break;
-            }
+            _ink.EditingMode = tool == Tool.Pen || tool == Tool.Highlighter
+                ? InkCanvasEditingMode.Ink
+                : InkCanvasEditingMode.None;
             if (tool != Tool.Eraser) _eraserRing.Visibility = Visibility.Collapsed;
             UpdateDrawingAttributes();
         }
@@ -258,12 +241,26 @@ namespace AlightenInk
                 da.Height = w * 5.5;
             }
             _ink.DefaultDrawingAttributes = da;
+            UpdateCursor();
             if (_editor != null)
             {
                 _editor.Foreground = new SolidColorBrush(color);
                 _editor.CaretBrush = new SolidColorBrush(color);
                 _editor.FontSize = _app.TextSize;
             }
+        }
+
+        /// <summary>Dual-tone cursor sized to the brush, rendered for this monitor's DPI.</summary>
+        private void UpdateCursor()
+        {
+            double dpi = VisualTreeHelper.GetDpi(this).DpiScaleX;
+            _ink.Cursor = CursorFactory.For(_tool, _app.InkColor, _app.PenWidth, _app.TextSize, _app.EraserDiameter, dpi);
+        }
+
+        protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
+        {
+            base.OnDpiChanged(oldDpi, newDpi);
+            UpdateCursor();
         }
 
         /// <summary>Puts this overlay in front and gives it keyboard focus (draw mode only).</summary>
@@ -389,7 +386,6 @@ namespace AlightenInk
                 _eraserRing.Width = _eraserRing.Height = d;
                 Canvas.SetLeft(_eraserRing, p.X - d / 2);
                 Canvas.SetTop(_eraserRing, p.Y - d / 2);
-                _eraserRing.Visibility = Visibility.Visible;
                 if (_erasing && e.LeftButton == MouseButtonState.Pressed)
                 {
                     // Sample along the segment so fast drags don't skip thin strokes.

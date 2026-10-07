@@ -185,6 +185,7 @@ namespace AlightenInk
             _addSwatch = new IconButton
             {
                 Content = Icons.Glyph(Icons.Add, 12),
+                Margin = new Thickness(0),
                 Width = 28,
                 ToolTip = Icons.Tip("Add colour", "Pick a custom colour · right-click a custom swatch to remove it"),
             };
@@ -268,6 +269,22 @@ namespace AlightenInk
             _menu = BuildMenu();
             _picker = new ColorPickerPopup();
             _picker.ColorChosen += (_, hex) => _app.AddCustomColor(hex);
+
+            AutoName(_addSwatch, "Add colour");
+            AutoName(_widths[0], "Thin width");
+            AutoName(_widths[1], "Medium width");
+            AutoName(_widths[2], "Thick width");
+            AutoName(_fade, "Fading ink");
+            AutoName(_board, "Whiteboard");
+            AutoName(_undo, "Undo");
+            AutoName(_redo, "Redo");
+            AutoName(_clear, "Clear all");
+            AutoName(_copy, "Copy region");
+            AutoName(_shot, "Screenshot");
+            AutoName(_more, "More");
+            AutoName(_collapse, "Collapse");
+            AutoName(_grip, "Move toolbar");
+            AutoName(_bubble, "Expand toolbar");
 
             // Any press on the toolbar first finishes an open text box (commit, or drop if empty),
             // then the button does its job.
@@ -470,6 +487,7 @@ namespace AlightenInk
         private void AddTool(Tool tool, FrameworkElement icon, string title, string hint)
         {
             var b = new IconButton { Content = icon, ToolTip = Icons.Tip(title, hint) };
+            System.Windows.Automation.AutomationProperties.SetName(b, title);
             b.Click += (_, __) =>
             {
                 _picker.IsOpen = false;
@@ -477,6 +495,9 @@ namespace AlightenInk
             };
             _tools[tool] = b;
         }
+
+        private static void AutoName(DependencyObject el, string name) =>
+            System.Windows.Automation.AutomationProperties.SetName(el, name);
 
         private static void Detach(UIElement el)
         {
@@ -614,6 +635,7 @@ namespace AlightenInk
                     Tag = h,
                     ToolTip = Icons.Tip(SwatchNames.TryGetValue(h, out var name) ? name : h, isCustom ? "Right-click to remove" : null),
                 };
+                AutoName(b, "Colour " + (SwatchNames.TryGetValue(h, out var n2) ? n2 : h));
                 b.Click += (_, __) => _app.SetColor(h);
                 if (isCustom) b.RightClick += (_, __) => _app.RemoveCustomColor(h);
                 _swatches.Add(b);
@@ -841,13 +863,15 @@ namespace AlightenInk
                 content.Children.Add(icon);
             }
             content.Children.Add(new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center });
-            return new Button
+            var chip = new Button
             {
                 Style = (Style)FindResource("PillButtonStyle"),
                 Content = content,
                 Margin = new Thickness(2),
                 Padding = new Thickness(8, 6, 8, 6),
             };
+            AutoName(chip, text);
+            return chip;
         }
 
         private static TextBlock Header(string text) => new TextBlock
@@ -876,6 +900,7 @@ namespace AlightenInk
             sp.Children.Add(g);
             sp.Children.Add(new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center });
             var b = new Button { Style = (Style)FindResource("MenuRowStyle"), Content = sp };
+            AutoName(b, text);
             b.Click += (_, __) =>
             {
                 _menu.IsOpen = false;
