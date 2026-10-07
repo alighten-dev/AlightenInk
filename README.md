@@ -3,6 +3,30 @@
 Elegant on-screen annotation for Windows 10/11 — draw over charts while you trade or record, then
 click straight through to your platform. A modern, dark, glassy replacement for Epic Pen.
 
+<p align="center">
+  <a href="https://github.com/alighten-dev/AlightenInk/releases/latest/download/AlightenInk-win-Setup.exe">
+    <img alt="Download AlightenInk for Windows" src="https://img.shields.io/badge/Download-AlightenInk%20for%20Windows-F09030?style=for-the-badge&logo=windows&logoColor=white&labelColor=1C2A39">
+  </a>
+</p>
+
+<p align="center">
+  <b><a href="https://github.com/alighten-dev/AlightenInk/releases/latest/download/AlightenInk-win-Setup.exe">⬇ Download the installer (AlightenInk-win-Setup.exe)</a></b>
+  &nbsp;·&nbsp; <a href="https://github.com/alighten-dev/AlightenInk/releases">All releases</a>
+</p>
+
+![AlightenInk toolbar over a NinjaTrader chart, with an arrow drawn on the chart](docs/screenshot.png)
+
+### Install
+
+1. Download **AlightenInk-win-Setup.exe** (link above) and run it. It installs just for you, with no admin rights,
+   and adds AlightenInk to the Start menu.
+2. Windows may show a blue *"Windows protected your PC"* screen the first time, because the installer isn't
+   code-signed yet. Click **More info → Run anyway**.
+3. AlightenInk starts in pass-through mode: your clicks go to your apps as normal. Pick any tool on the toolbar,
+   or press **Ctrl+Shift+D**, to start drawing.
+
+Updates are automatic: when a new version is released, AlightenInk offers to restart into it.
+
 ## Features
 
 - Transparent overlay on every monitor (mixed DPI aware), **Draw** and **Pass-through** modes.
