@@ -28,6 +28,7 @@ namespace AlightenInk
         private readonly Stopwatch _clock = Stopwatch.StartNew();
         private DispatcherTimer? _fadeTimer;
         private DispatcherTimer? _saveTimer;
+        private DispatcherTimer? _zOrderTimer;
         private ToolbarWindow? _toolbar;
         private TrayIcon? _tray;
         private HotkeyManager? _hotkeys;
@@ -106,6 +107,10 @@ namespace AlightenInk
             }
 
             _tray = new TrayIcon(this);
+
+            _zOrderTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1000) };
+            _zOrderTimer.Tick += (_, __) => { if (IsDrawMode || Board != BoardMode.None) _toolbar?.BringToFront(); };
+            _zOrderTimer.Start();
 
             _fadeTimer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(30) };
             _fadeTimer.Tick += (_, __) => FadeTick();
@@ -200,7 +205,7 @@ namespace AlightenInk
                 ov.SetBoard(Board);
                 _overlays.Add(ov);
             }
-            _toolbar?.BringToFront();
+            KeepToolbarOnTop();
         }
 
         private void OnDisplaySettingsChanged(object? sender, EventArgs e)
@@ -217,6 +222,30 @@ namespace AlightenInk
             var screen = WinForms.Screen.FromPoint(WinForms.Cursor.Position);
             return _overlays.FirstOrDefault(o => o.DeviceName == screen.DeviceName) ?? _overlays.FirstOrDefault();
         }
+
+        /// <summary>True when the mouse is over the toolbar or one of its popups (physical pixels).</summary>
+        internal bool IsCursorOverToolbar()
+        {
+            if (_toolbar == null || !_toolbar.IsVisible) return false;
+            Native.GetCursorPos(out var p);
+            return InputGuard.IsOverToolbar(p.X, p.Y, _toolbar.ScreenRects());
+        }
+
+        /// <summary>Re-asserts the toolbar above the overlays (activation raises an overlay over it).</summary>
+        internal void KeepToolbarOnTop()
+        {
+            _toolbar?.BringToFront();
+            // Activation z-order changes can land after this call; repeat once the dust settles.
+            Dispatcher.BeginInvoke(new Action(() => _toolbar?.BringToFront()), DispatcherPriority.Background);
+        }
+
+        /// <summary>Commits (or drops, if empty) any open text box on every monitor.</summary>
+        internal void CommitAllText()
+        {
+            foreach (var o in _overlays) o.CommitText();
+        }
+
+        internal bool IsEditingText => _overlays.Any(o => o.IsEditingText);
 
         internal bool IsOwnWindow(IntPtr hwnd)
         {
@@ -248,7 +277,7 @@ namespace AlightenInk
                 o.SetDrawMode(true);
             }
             if (!wasDrawing) OverlayUnderCursor()?.ActivateForDrawing();
-            _toolbar?.BringToFront();
+            KeepToolbarOnTop();
             RaiseState();
         }
 
@@ -267,7 +296,7 @@ namespace AlightenInk
                 Native.ForceForeground(_previousForeground);
             }
             _previousForeground = IntPtr.Zero;
-            _toolbar?.BringToFront();
+            KeepToolbarOnTop();
             RaiseState();
         }
 

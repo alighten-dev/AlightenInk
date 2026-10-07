@@ -119,6 +119,8 @@ namespace AlightenInk
             MouseLeave += (_, __) => _eraserRing.Visibility = Visibility.Collapsed;
             PreviewKeyDown += OnPreviewKeyDown;
             LostMouseCapture += (_, __) => FinishGesture(cancel: false);
+            // Activation raises an overlay to the top of the topmost band; put the toolbar back above it.
+            Activated += (_, __) => _app.KeepToolbarOnTop();
         }
 
         public WinForms.Screen Screen { get; private set; }
@@ -272,6 +274,7 @@ namespace AlightenInk
             Activate();
             Focus();
             Keyboard.Focus(this);
+            _app.KeepToolbarOnTop();
         }
 
         // ---------------------------------------------------------------- items (undo host)
@@ -329,6 +332,14 @@ namespace AlightenInk
         private void OnDown(object sender, MouseButtonEventArgs e)
         {
             if (!_drawMode) return;
+            // A press over the toolbar's area is never ink or a text box (the toolbar should have
+            // received it; if z-order slipped, restore it and swallow the press).
+            if (_app.IsCursorOverToolbar())
+            {
+                _app.KeepToolbarOnTop();
+                e.Handled = true;
+                return;
+            }
             Point p = e.GetPosition(_ink);
 
             if (_tool == Tool.Text)
@@ -540,8 +551,11 @@ namespace AlightenInk
         {
             if (e.Key == Key.Escape)
             {
+                // Esc cancels the box; Esc in an empty box also leaves text mode (keyboard way out).
+                bool wasEmpty = _editor == null || _editor.Text.Length == 0;
                 CancelText();
                 e.Handled = true;
+                if (wasEmpty) _app.ExitDrawMode();
             }
             else if (e.Key == Key.Enter && !Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
             {

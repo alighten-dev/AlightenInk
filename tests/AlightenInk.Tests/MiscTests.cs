@@ -146,3 +146,43 @@ namespace AlightenInk.Tests
         }
     }
 }
+
+namespace AlightenInk.Tests
+{
+    using System.Collections.Generic;
+    using AlightenInk.Core;
+    using Xunit;
+
+    /// <summary>
+    /// Regression: in Text mode a click on the toolbar's pass-through button reached the overlay and
+    /// opened a text box. Presses inside the toolbar (or its popups) must be ignored by overlays.
+    /// </summary>
+    public class InputGuardTests
+    {
+        private static readonly List<PixelRect> Toolbar = new List<PixelRect>
+        {
+            new PixelRect(171, 4, 1988, 137),     // toolbar window (incl. shadow margin)
+            new PixelRect(1500, 130, 1900, 600),  // open "more" menu popup
+        };
+
+        [Theory]
+        [InlineData(220, 71, true)]     // pass-through button
+        [InlineData(171, 4, true)]      // top-left corner is inside
+        [InlineData(1987, 136, true)]   // last pixel inside
+        [InlineData(1988, 71, false)]   // right edge is exclusive
+        [InlineData(500, 600, false)]   // open canvas
+        [InlineData(1700, 400, true)]   // inside the popup
+        [InlineData(-3000, 50, false)]  // another monitor
+        public void PressOverToolbar_IsBlocked(int x, int y, bool blocked)
+        {
+            Assert.Equal(blocked, InputGuard.IsOverToolbar(x, y, Toolbar));
+        }
+
+        [Fact]
+        public void HiddenToolbar_BlocksNothing()
+        {
+            Assert.False(InputGuard.IsOverToolbar(220, 71, new List<PixelRect>()));
+            Assert.False(InputGuard.IsOverToolbar(5, 5, new[] { new PixelRect(10, 10, 10, 10) }));
+        }
+    }
+}

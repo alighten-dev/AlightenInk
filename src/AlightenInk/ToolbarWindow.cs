@@ -269,6 +269,11 @@ namespace AlightenInk
             _picker = new ColorPickerPopup();
             _picker.ColorChosen += (_, hex) => _app.AddCustomColor(hex);
 
+            // Any press on the toolbar first finishes an open text box (commit, or drop if empty),
+            // then the button does its job.
+            PreviewMouseLeftButtonDown += (_, __) => _app.CommitAllText();
+            PreviewMouseRightButtonDown += (_, __) => _app.CommitAllText();
+
             SourceInitialized += OnSourceInitialized;
             ContentRendered += (_, __) => Dispatcher.BeginInvoke(new Action(PlaceInitially), DispatcherPriority.Background);
             _app.StateChanged += (_, __) => Refresh();
@@ -344,6 +349,25 @@ namespace AlightenInk
         }
 
         private static long Area(System.Drawing.Rectangle r) => r.Width <= 0 || r.Height <= 0 ? 0 : (long)r.Width * r.Height;
+
+        /// <summary>Screen rectangles (physical px) of the toolbar and any open popup.</summary>
+        public IEnumerable<PixelRect> ScreenRects()
+        {
+            var list = new List<PixelRect>();
+            if (_hwnd != IntPtr.Zero && IsVisible && Native.GetWindowRect(_hwnd, out var r))
+            {
+                list.Add(new PixelRect(r.Left, r.Top, r.Right, r.Bottom));
+            }
+            foreach (var popup in new Popup[] { _menu, _picker })
+            {
+                if (!popup.IsOpen || popup.Child == null) continue;
+                if (PresentationSource.FromVisual(popup.Child) is HwndSource src && Native.GetWindowRect(src.Handle, out var pr))
+                {
+                    list.Add(new PixelRect(pr.Left, pr.Top, pr.Right, pr.Bottom));
+                }
+            }
+            return list;
+        }
 
         public void BringToFront()
         {
