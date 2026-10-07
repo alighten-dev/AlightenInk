@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <StartupObject>AlightenInk.Program</StartupObject>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AlightenInk.ico</ApplicationIcon>
+    <AssemblyName>AlightenInk</AssemblyName>
+    <RootNamespace>AlightenInk</RootNamespace>
+    <Version>1.0.0</Version>
+    <Product>AlightenInk</Product>
+    <Company>Alighten</Company>
+    <Description>Elegant on-screen annotation for traders and presenters.</Description>
+    <Copyright>Copyright (c) 2026 Alighten</Copyright>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- WinForms is only used for NotifyIcon / Screen / clipboard bitmaps. -->
+    <NoWarn>$(NoWarn);WFO5001;WFAC010</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Program.Main is the entry point (Velopack must run first), so App.xaml is a plain Page. -->
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+    <Resource Include="Assets\AlightenInk.png" />
+    <Resource Include="Assets\AlightenInk.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Velopack" Version="1.2.161" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AlightenInk.Core\AlightenInk.Core.csproj" />
+  </ItemGroup>
+
+</Project>

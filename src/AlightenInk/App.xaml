@@ -1,0 +1,261 @@
+<Application x:Class="AlightenInk.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:AlightenInk"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Brand -->
+            <Color x:Key="PumpkinColor">#F09030</Color>
+            <Color x:Key="NavyColor">#1C2A39</Color>
+            <SolidColorBrush x:Key="PumpkinBrush" Color="{StaticResource PumpkinColor}" />
+            <SolidColorBrush x:Key="NavyBrush" Color="{StaticResource NavyColor}" />
+            <SolidColorBrush x:Key="IconBrush" Color="#D9F5F5F5" />
+            <SolidColorBrush x:Key="PanelBrush" Color="#EB161E28" />
+            <SolidColorBrush x:Key="PanelBorderBrush" Color="#33FFFFFF" />
+            <SolidColorBrush x:Key="HoverBrush" Color="#1FFFFFFF" />
+            <SolidColorBrush x:Key="SeparatorBrush" Color="#24FFFFFF" />
+            <SolidColorBrush x:Key="MutedTextBrush" Color="#99F5F5F5" />
+            <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+            <FontFamily x:Key="UiFont">Segoe UI Variable Text, Segoe UI</FontFamily>
+            <Duration x:Key="Quick">0:0:0.12</Duration>
+
+            <DropShadowEffect x:Key="PanelShadow" BlurRadius="22" ShadowDepth="5" Direction="270" Opacity="0.5" Color="#000000" />
+
+            <!-- Dark tooltips with hotkey hints -->
+            <Style TargetType="ToolTip">
+                <Setter Property="OverridesDefaultStyle" Value="True" />
+                <Setter Property="HasDropShadow" Value="False" />
+                <Setter Property="Foreground" Value="#F5F5F5" />
+                <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Placement" Value="Bottom" />
+                <Setter Property="VerticalOffset" Value="6" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToolTip">
+                            <Border Background="#F2101722" BorderBrush="#33FFFFFF" BorderThickness="1"
+                                    CornerRadius="8" Padding="10,6" Margin="0,0,8,8">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Opacity="0.45" />
+                                </Border.Effect>
+                                <ContentPresenter />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Toolbar icon button: transparent until hovered, pumpkin pill when active -->
+            <Style TargetType="local:IconButton">
+                <Setter Property="Width" Value="36" />
+                <Setter Property="Height" Value="36" />
+                <Setter Property="Margin" Value="1" />
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="Foreground" Value="{StaticResource IconBrush}" />
+                <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
+                <Setter Property="FontSize" Value="17" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="ToolTipService.InitialShowDelay" Value="450" />
+                <Setter Property="ToolTipService.BetweenShowDelay" Value="150" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="local:IconButton">
+                            <Grid Background="Transparent">
+                                <Border x:Name="Hover" CornerRadius="10" Background="{StaticResource HoverBrush}" Opacity="0" />
+                                <Border x:Name="Active" CornerRadius="10" Background="{StaticResource PumpkinBrush}" Opacity="0"
+                                        RenderTransformOrigin="0.5,0.5">
+                                    <Border.RenderTransform>
+                                        <ScaleTransform ScaleX="0.7" ScaleY="0.7" />
+                                    </Border.RenderTransform>
+                                </Border>
+                                <ContentPresenter x:Name="Content" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  RenderTransformOrigin="0.5,0.5">
+                                    <ContentPresenter.RenderTransform>
+                                        <ScaleTransform ScaleX="1" ScaleY="1" />
+                                    </ContentPresenter.RenderTransform>
+                                </ContentPresenter>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="{StaticResource Quick}" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                    <Trigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsActive" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource NavyBrush}" />
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Active" Storyboard.TargetProperty="Opacity" To="1" Duration="{StaticResource Quick}" />
+                                                <DoubleAnimation Storyboard.TargetName="Active" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.16">
+                                                    <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                                <DoubleAnimation Storyboard.TargetName="Active" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.16">
+                                                    <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                    <Trigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Active" Storyboard.TargetProperty="Opacity" To="0" Duration="{StaticResource Quick}" />
+                                                <DoubleAnimation Storyboard.TargetName="Active" Storyboard.TargetProperty="RenderTransform.ScaleX" To="0.7" Duration="{StaticResource Quick}" />
+                                                <DoubleAnimation Storyboard.TargetName="Active" Storyboard.TargetProperty="RenderTransform.ScaleY" To="0.7" Duration="{StaticResource Quick}" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Content" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <ScaleTransform ScaleX="0.9" ScaleY="0.9" />
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="Content" Property="Opacity" Value="0.32" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Colour swatch: filled circle, ring when selected -->
+            <Style x:Key="SwatchStyle" TargetType="local:IconButton">
+                <Setter Property="Width" Value="28" />
+                <Setter Property="Height" Value="36" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="ToolTipService.InitialShowDelay" Value="450" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="local:IconButton">
+                            <Grid Background="Transparent" Width="26" Height="26">
+                                <Ellipse x:Name="Ring" Stroke="#F5F5F5" StrokeThickness="2" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                    <Ellipse.RenderTransform>
+                                        <ScaleTransform ScaleX="0.75" ScaleY="0.75" />
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                                <Ellipse x:Name="Dot" Margin="5" Fill="{TemplateBinding Background}" Stroke="#59FFFFFF" StrokeThickness="1"
+                                         RenderTransformOrigin="0.5,0.5">
+                                    <Ellipse.RenderTransform>
+                                        <ScaleTransform ScaleX="1" ScaleY="1" />
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.14" Duration="{StaticResource Quick}" />
+                                                <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.14" Duration="{StaticResource Quick}" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                    <Trigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="{StaticResource Quick}" />
+                                                <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="{StaticResource Quick}" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsActive" Value="True">
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="Opacity" To="1" Duration="{StaticResource Quick}" />
+                                                <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.16" />
+                                                <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.16" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                    <Trigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="Opacity" To="0" Duration="{StaticResource Quick}" />
+                                                <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="RenderTransform.ScaleX" To="0.75" Duration="{StaticResource Quick}" />
+                                                <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="RenderTransform.ScaleY" To="0.75" Duration="{StaticResource Quick}" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.ExitActions>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Rows in the "more" menu and other popovers -->
+            <Style x:Key="MenuRowStyle" TargetType="Button">
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="Foreground" Value="#F5F5F5" />
+                <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bg" CornerRadius="7" Background="Transparent" Padding="10,7" Margin="0,1">
+                                <ContentPresenter />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="#1FFFFFFF" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="#2EFFFFFF" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Text buttons in popovers (Add / Cancel) -->
+            <Style x:Key="PillButtonStyle" TargetType="Button">
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="Foreground" Value="#F5F5F5" />
+                <Setter Property="Background" Value="#26FFFFFF" />
+                <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+                <Setter Property="FontSize" Value="12.5" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Padding" Value="14,6" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bg" CornerRadius="8" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bg" Property="Opacity" Value="0.85" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
