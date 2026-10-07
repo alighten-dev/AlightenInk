@@ -227,6 +227,7 @@ namespace AlightenInk
             _copy.Click += async (_, __) => await _app.CopyRegionAsync();
             _shot = new IconButton { Content = Icons.Glyph(Icons.Camera, 17) };
             _shot.Click += async (_, __) => await _app.ScreenshotAsync();
+            _shot.RightClick += async (_, __) => await _app.ScreenshotAsync(forceFullScreen: true);
             _more = new IconButton { Content = Icons.Glyph(Icons.More, 16), ToolTip = Icons.Tip("More", "Layout, fade time, updates, about, exit") };
             _more.Click += (_, __) => ToggleMenu();
             _collapseGlyph = Icons.Glyph(Icons.ChevronLeft, 12);
@@ -676,7 +677,8 @@ namespace AlightenInk
             _redo.ToolTip = Icons.Tip("Redo", "Ctrl+Y · " + K(HotkeyCommand.Redo) + " anywhere");
             _clear.ToolTip = Icons.Tip("Clear all", "Esc while drawing · " + K(HotkeyCommand.Clear) + " anywhere");
             _copy.ToolTip = Icons.Tip("Copy region", K(HotkeyCommand.CopyRegion) + " · drag a region, click for the whole screen");
-            _shot.ToolTip = Icons.Tip("Screenshot", K(HotkeyCommand.Screenshot) + " · saves to Pictures\\AlightenInk and copies");
+            _shot.ToolTip = Icons.Tip(s.ScreenshotMode == ScreenshotMode.Region ? "Screenshot (region)" : "Screenshot (full screen)",
+                K(HotkeyCommand.Screenshot) + " · saves to Pictures\\AlightenInk and copies · right-click: full screen");
 
             // Collapsed bubble shows the colour and whether drawing is on.
             _bubbleDot.Fill = new SolidColorBrush(_app.InkColor);
@@ -750,7 +752,7 @@ namespace AlightenInk
 
         // ================================================================ "more" menu
 
-        private Button? _layoutH, _layoutV;
+        private Button? _layoutH, _layoutV, _shotRegion, _shotFull;
         private readonly List<(Button Button, double Seconds)> _fadeChips = new List<(Button, double)>();
 
         private Popup BuildMenu()
@@ -766,6 +768,16 @@ namespace AlightenInk
             seg.Children.Add(_layoutH);
             seg.Children.Add(_layoutV);
             stack.Children.Add(seg);
+
+            stack.Children.Add(Header("Screenshot button"));
+            _shotRegion = Chip("Region", null);
+            _shotFull = Chip("Full screen", null);
+            _shotRegion.Click += (_, __) => _app.SetScreenshotMode(ScreenshotMode.Region);
+            _shotFull.Click += (_, __) => _app.SetScreenshotMode(ScreenshotMode.FullScreen);
+            var shotSeg = new UniformGrid { Columns = 2, Margin = new Thickness(4, 0, 4, 4) };
+            shotSeg.Children.Add(_shotRegion);
+            shotSeg.Children.Add(_shotFull);
+            stack.Children.Add(shotSeg);
 
             stack.Children.Add(Header("Fading ink holds for"));
             var chips = new UniformGrid { Columns = AppSettings.FadeChoices.Length, Margin = new Thickness(4, 0, 4, 4) };
@@ -842,6 +854,11 @@ namespace AlightenInk
             if (_layoutH == null || _layoutV == null) return;
             SetChipActive(_layoutH, _app.Settings.Layout == ToolbarLayout.Horizontal);
             SetChipActive(_layoutV, _app.Settings.Layout == ToolbarLayout.Vertical);
+            if (_shotRegion != null && _shotFull != null)
+            {
+                SetChipActive(_shotRegion, _app.Settings.ScreenshotMode == ScreenshotMode.Region);
+                SetChipActive(_shotFull, _app.Settings.ScreenshotMode == ScreenshotMode.FullScreen);
+            }
             foreach (var (b, sec) in _fadeChips) SetChipActive(b, Math.Abs(sec - _app.Settings.FadeSeconds) < 0.01);
         }
 

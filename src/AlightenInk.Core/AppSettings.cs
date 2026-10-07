@@ -14,6 +14,13 @@ namespace AlightenInk.Core
         Vertical
     }
 
+    public enum ScreenshotMode
+    {
+        /// <summary>Drag a region (Snagit-style); a click takes the whole monitor.</summary>
+        Region,
+        FullScreen
+    }
+
     /// <summary>Everything AlightenInk remembers between runs. Plain data; see <see cref="SettingsStore"/>.</summary>
     public sealed class AppSettings
     {
@@ -53,6 +60,10 @@ namespace AlightenInk.Core
 
         public bool Collapsed { get; set; }
 
+        /// <summary>What the screenshot button / Ctrl+Shift+S does (right-click is always full screen).</summary>
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public ScreenshotMode ScreenshotMode { get; set; } = ScreenshotMode.Region;
+
         /// <summary>All swatches in display order (defaults then custom).</summary>
         [JsonIgnore]
         public IEnumerable<string> AllSwatches => DefaultSwatches.Concat(CustomSwatches);
@@ -72,6 +83,7 @@ namespace AlightenInk.Core
             if (WidthIndex < 0 || WidthIndex > 2) WidthIndex = 1;
             if (double.IsNaN(FadeSeconds) || FadeSeconds < 0.5 || FadeSeconds > 60) FadeSeconds = 3;
             if (!Enum.IsDefined(typeof(ToolbarLayout), Layout)) Layout = ToolbarLayout.Horizontal;
+            if (!Enum.IsDefined(typeof(ScreenshotMode), ScreenshotMode)) ScreenshotMode = ScreenshotMode.Region;
             if (ToolbarX.HasValue && (double.IsNaN(ToolbarX.Value) || double.IsInfinity(ToolbarX.Value))) ToolbarX = null;
             if (ToolbarY.HasValue && (double.IsNaN(ToolbarY.Value) || double.IsInfinity(ToolbarY.Value))) ToolbarY = null;
             return this;

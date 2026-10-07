@@ -33,10 +33,10 @@ namespace AlightenInk
         private Point? _start;
         private Rect _sel;
 
-        public RegionSelectWindow(Drawing.Bitmap frozen, Drawing.Rectangle bounds)
+        public RegionSelectWindow(Drawing.Bitmap frozen, Drawing.Rectangle bounds, string hint)
         {
             _bounds = bounds;
-            Title = "AlightenInk Copy Region";
+            Title = "AlightenInk Region";
             WindowStyle = WindowStyle.None;
             ResizeMode = ResizeMode.NoResize;
             ShowInTaskbar = false;
@@ -57,6 +57,8 @@ namespace AlightenInk
             {
                 Stroke = new SolidColorBrush(Pumpkin),
                 StrokeThickness = 2,
+                StrokeDashArray = new DoubleCollection { 4, 3 },
+                StrokeDashCap = PenLineCap.Flat,
                 Visibility = Visibility.Collapsed,
                 IsHitTestVisible = false,
                 Effect = new DropShadowEffect { BlurRadius = 8, ShadowDepth = 0, Opacity = 0.6 },
@@ -88,7 +90,7 @@ namespace AlightenInk
                 Effect = new DropShadowEffect { BlurRadius = 18, ShadowDepth = 4, Direction = 270, Opacity = 0.5 },
                 Child = new TextBlock
                 {
-                    Text = "Drag to copy a region  ·  Click for the whole screen  ·  Esc to cancel",
+                    Text = hint,
                     Foreground = new SolidColorBrush(Color.FromRgb(0xF5, 0xF5, 0xF5)),
                     FontFamily = new FontFamily("Segoe UI Variable Text, Segoe UI"),
                     FontSize = 13,
@@ -221,7 +223,11 @@ namespace AlightenInk
                 _dim.Data = full;
                 return;
             }
-            _dim.Data = new CombinedGeometry(GeometryCombineMode.Exclude, full, new RectangleGeometry(_sel));
+            // Even-odd fill of [screen, selection] = everything except the selection.
+            var group = new GeometryGroup { FillRule = FillRule.EvenOdd };
+            group.Children.Add(full);
+            group.Children.Add(new RectangleGeometry(_sel));
+            _dim.Data = group;
         }
 
         private void Finish(Drawing.Rectangle? result)

@@ -540,87 +540,89 @@ namespace AlightenInk
 
         // ================================================================ capture
 
-        public async Task CopyRegionAsync()
+        /// <summary>Copy button / Ctrl+Shift+C: pick a region, copy it (no file).</summary>
+        public Task CopyRegionAsync() => CaptureAsync(region: true, save: false);
+
+        /// <summary>
+        /// Screenshot button / Ctrl+Shift+S: region by default (Snagit-style) or the whole monitor,
+        /// per the menu setting; <paramref name="forceFullScreen"/> is the right-click shortcut.
+        /// Always saves a PNG and copies it.
+        /// </summary>
+        public Task ScreenshotAsync(bool forceFullScreen = false) =>
+            CaptureAsync(region: !forceFullScreen && Settings.ScreenshotMode == ScreenshotMode.Region, save: true);
+
+        private async Task CaptureAsync(bool region, bool save)
         {
             if (_busyCapturing) return;
             _busyCapturing = true;
+            System.Drawing.Bitmap? frozen = null;
             try
             {
-                foreach (var o in _overlays) o.CommitText();
+                CommitAllText();
                 var screen = WinForms.Screen.FromPoint(WinForms.Cursor.Position);
-                System.Drawing.Bitmap frozen;
                 await HideToolbarForCaptureAsync();
                 try
                 {
+                    // Freeze the monitor (drawings included, toolbar hidden) before any selection UI appears.
                     frozen = Capture.CaptureRect(screen.Bounds);
                 }
-                finally
+                catch
                 {
-                    _toolbar?.Hide();
+                    _toolbar?.ShowAfterCapture();
+                    throw;
                 }
 
-                var picker = new RegionSelectWindow(frozen, screen.Bounds);
-                var rect = await picker.PickAsync();
-                _toolbar?.ShowAfterCapture();
-                using (frozen)
+                System.Drawing.Rectangle? rect = new System.Drawing.Rectangle(0, 0, frozen.Width, frozen.Height);
+                if (region)
                 {
-                    if (rect == null)
-                    {
-                        Toast("Copy cancelled");
-                        return;
-                    }
-                    using var crop = Capture.Crop(frozen, rect.Value);
-                    bool ok = Capture.ToClipboard(crop);
-                    Toast(ok ? "Copied ✓" : "Clipboard busy — try again", ok);
+                    string hint = save
+                        ? "Drag to capture a region  ·  Click for the whole screen  ·  Esc to cancel"
+                        : "Drag to copy a region  ·  Click for the whole screen  ·  Esc to cancel";
+                    rect = await new RegionSelectWindow(frozen, screen.Bounds, hint).PickAsync();
+                }
+                _toolbar?.ShowAfterCapture();
+                KeepToolbarOnTop();
+                if (rect == null)
+                {
+                    Toast(save ? "Screenshot cancelled" : "Copy cancelled");
+                    return;
+                }
+
+                using var image = Capture.Crop(frozen, rect.Value);
+                if (save)
+                {
+                    string path = Capture.SavePng(image, Capture.ScreenshotFolder);
+                    LastScreenshotPath = path;
+                    bool ok = Capture.ToClipboard(image);
+                    Toast(ok ? $"Saved ✓  {image.Width}×{image.Height} · copied" : "Saved ✓ (clipboard busy)", true);
+                }
+                else
+                {
+                    bool ok = Capture.ToClipboard(image);
+                    Toast(ok ? $"Copied ✓  {image.Width}×{image.Height}" : "Clipboard busy — try again", ok);
                 }
             }
             catch (Exception ex)
             {
-                Log("Copy region: " + ex);
+                Log("Capture: " + ex);
                 _toolbar?.ShowAfterCapture();
-                Toast("Copy failed");
+                Toast(save ? "Screenshot failed" : "Copy failed");
             }
             finally
             {
+                frozen?.Dispose();
                 _busyCapturing = false;
             }
         }
 
-        public async Task ScreenshotAsync()
+        /// <summary>Path of the most recent saved screenshot (for diagnostics/tests).</summary>
+        public string? LastScreenshotPath { get; private set; }
+
+        public void SetScreenshotMode(ScreenshotMode mode)
         {
-            if (_busyCapturing) return;
-            _busyCapturing = true;
-            try
-            {
-                foreach (var o in _overlays) o.CommitText();
-                var screen = WinForms.Screen.FromPoint(WinForms.Cursor.Position);
-                await HideToolbarForCaptureAsync();
-                System.Drawing.Bitmap bmp;
-                try
-                {
-                    bmp = Capture.CaptureRect(screen.Bounds);
-                }
-                finally
-                {
-                    _toolbar?.ShowAfterCapture();
-                }
-                using (bmp)
-                {
-                    string path = Capture.SavePng(bmp, Capture.ScreenshotFolder);
-                    bool ok = Capture.ToClipboard(bmp);
-                    Toast(ok ? "Saved ✓  " + System.IO.Path.GetFileName(path) : "Saved ✓ (clipboard busy)", true);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log("Screenshot: " + ex);
-                _toolbar?.ShowAfterCapture();
-                Toast("Screenshot failed");
-            }
-            finally
-            {
-                _busyCapturing = false;
-            }
+            Settings.ScreenshotMode = mode;
+            SaveSoon();
+            RaiseState();
         }
 
         private async Task HideToolbarForCaptureAsync()

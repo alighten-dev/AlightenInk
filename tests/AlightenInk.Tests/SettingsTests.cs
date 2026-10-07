@@ -29,6 +29,7 @@ namespace AlightenInk.Tests
                 ToolbarX = -3500.5,
                 ToolbarY = 42,
                 Collapsed = true,
+                ScreenshotMode = ScreenshotMode.FullScreen,
             };
             s.CustomSwatches.Add("#123456");
             s.CustomSwatches.Add("#abcdef");
@@ -45,6 +46,7 @@ namespace AlightenInk.Tests
             Assert.Equal(-3500.5, back.ToolbarX);
             Assert.Equal(42, back.ToolbarY);
             Assert.True(back.Collapsed);
+            Assert.Equal(ScreenshotMode.FullScreen, back.ScreenshotMode);
             Assert.Equal(new[] { "#123456", "#ABCDEF" }, back.CustomSwatches);
         }
 
@@ -70,6 +72,17 @@ namespace AlightenInk.Tests
             Assert.Equal(3, s.FadeSeconds);
             Assert.Equal(ToolbarLayout.Horizontal, s.Layout);
             Assert.Empty(s.CustomSwatches);
+            Assert.Equal(ScreenshotMode.Region, s.ScreenshotMode);
+        }
+
+        [Fact]
+        public void OldFileWithoutScreenshotMode_DefaultsToRegion()
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+            File.WriteAllText(FilePath, "{\"color\":\"#26DE81\",\"layout\":\"Vertical\"}");
+            var s = new SettingsStore(FilePath).Load();
+            Assert.Equal(ScreenshotMode.Region, s.ScreenshotMode);
+            Assert.Equal(ToolbarLayout.Vertical, s.Layout);
         }
 
         [Theory]
