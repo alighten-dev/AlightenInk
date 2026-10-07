@@ -48,7 +48,6 @@ namespace AlightenInk
         private readonly App _app;
         private readonly InkCanvas _ink;
         private readonly Canvas _top;       // eraser ring + text editor (above the ink)
-        private readonly Ellipse _eraserRing;
         private IntPtr _hwnd;
         private bool _drawMode;
         private Tool _tool = Tool.Cursor;
@@ -96,16 +95,6 @@ namespace AlightenInk
             _ink.StrokeCollected += OnStrokeCollected;
 
             _top = new Canvas { Background = null };
-            _eraserRing = new Ellipse
-            {
-                Stroke = new SolidColorBrush(Color.FromArgb(0xE6, 0xF5, 0xF5, 0xF5)),
-                StrokeThickness = 1.5,
-                Fill = new SolidColorBrush(Color.FromArgb(0x26, 0xF0, 0x90, 0x30)),
-                IsHitTestVisible = false,
-                Visibility = Visibility.Collapsed,
-                Effect = new DropShadowEffect { BlurRadius = 4, ShadowDepth = 0, Opacity = 0.8 },
-            };
-            _top.Children.Add(_eraserRing);
 
             var root = new Grid();
             root.Children.Add(_ink);
@@ -116,7 +105,6 @@ namespace AlightenInk
             PreviewMouseLeftButtonDown += OnDown;
             PreviewMouseMove += OnMove;
             PreviewMouseLeftButtonUp += OnUp;
-            MouseLeave += (_, __) => _eraserRing.Visibility = Visibility.Collapsed;
             PreviewKeyDown += OnPreviewKeyDown;
             LostMouseCapture += (_, __) => FinishGesture(cancel: false);
             // Activation raises an overlay to the top of the topmost band; put the toolbar back above it.
@@ -186,7 +174,6 @@ namespace AlightenInk
             {
                 FinishGesture(cancel: false);
                 CommitText();
-                _eraserRing.Visibility = Visibility.Collapsed;
             }
             UpdateBackground();
         }
@@ -199,7 +186,6 @@ namespace AlightenInk
             _ink.EditingMode = tool == Tool.Pen || tool == Tool.Highlighter
                 ? InkCanvasEditingMode.Ink
                 : InkCanvasEditingMode.None;
-            if (tool != Tool.Eraser) _eraserRing.Visibility = Visibility.Collapsed;
             UpdateDrawingAttributes();
         }
 
@@ -383,9 +369,6 @@ namespace AlightenInk
             if (_tool == Tool.Eraser)
             {
                 double d = _app.EraserDiameter;
-                _eraserRing.Width = _eraserRing.Height = d;
-                Canvas.SetLeft(_eraserRing, p.X - d / 2);
-                Canvas.SetTop(_eraserRing, p.Y - d / 2);
                 if (_erasing && e.LeftButton == MouseButtonState.Pressed)
                 {
                     // Sample along the segment so fast drags don't skip thin strokes.

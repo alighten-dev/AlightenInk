@@ -14,8 +14,13 @@ click straight through to your platform. A modern, dark, glassy replacement for 
   three widths.
 - Fading ink (2/3/5/8 s hold, then a 0.8 s fade) — right-click the timer button to change the hold.
 - Whiteboard / blackboard, global undo/redo (one eraser drag = one step), clear all.
-- Copy a region to the clipboard (click without dragging = the whole monitor) and one-key screenshots
-  saved to `Pictures\AlightenInk` (also copied).
+- Snagit-style screenshots: the camera button / Ctrl+Shift+S dims the screen, you drag a dashed
+  pumpkin box (live W×H readout), and the region — drawings included, toolbar hidden — is saved to
+  `Pictures\AlightenInk` **and** copied. A click without dragging takes the whole monitor, Esc cancels,
+  right-click the camera for an instant full-screen shot, and the ⋯ menu switches the default
+  between *Region* and *Full screen*. The copy button uses the same selector but only copies.
+- Drawing cursors with a dark/light dual outline that stay visible on whiteboard, blackboard and
+  charts; pen, highlighter and eraser cursors are sized to the brush.
 - Floating toolbar: horizontal or vertical, collapses to a small round button, remembers its place.
 - Tray icon, single instance, automatic updates (Velopack + GitHub Releases).
 
@@ -26,7 +31,7 @@ click straight through to your platform. A modern, dark, glassy replacement for 
 | Ctrl+Shift+D | Draw / pass-through | P H E T | Pen, highlighter, eraser, text |
 | Ctrl+Shift+F | Fading ink on/off | L A R O I | Line, arrow, rectangle, ellipse, h-line |
 | Ctrl+Shift+C | Copy region | 1 2 3 | Width |
-| Ctrl+Shift+S | Screenshot | Ctrl+Z / Ctrl+Y | Undo / redo |
+| Ctrl+Shift+S | Screenshot (region by default) | Ctrl+Z / Ctrl+Y | Undo / redo |
 | Ctrl+Shift+Z / Y | Undo / redo | Esc | Clear all (in an empty text box: leave text mode) |
 | Ctrl+Shift+X | Clear all | | |
 | Ctrl+Shift+W | Whiteboard → blackboard → off | | |
@@ -65,6 +70,9 @@ Build the installer locally:
 ```powershell
 .\build-release.ps1 -Version 1.0.0
 ```
+
+(Velopack refuses to pack a version that is not newer than what is already in `Releases\`; bump the
+version, or delete `Releases\` for a throw-away local rebuild.)
 
 This publishes a self-contained win-x64 build and runs `vpk pack`, producing
 `Releases\AlightenInk-win-Setup.exe` (what you give to friends — it installs per-user to
